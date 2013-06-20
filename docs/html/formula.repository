@@ -1,0 +1,19 @@
+\form#0:$ j \in F_q $
+\form#1:$ s' = ( (( HE + r * SSK )^{-1}) * j )$
+\form#2:$ J_x $
+\form#3:$ R_{(b,S)} $
+\form#4:$ R_{(b,S)} = [r]([b]P + Z_S) $
+\form#5:$ E(F_p) $
+\form#6:$ g^r $
+\form#7:$ 2^n $
+\form#8:$ KMS_S $
+\form#9:$ Z_S $
+\form#10:$ < [b]P + Z_S, K_{(b,S)} >$
+\form#11:$ K_{(b,S)} $
+\form#12:$ w := < R_{(b,S)}, K_{(b,S)} > $
+\form#13:$ w = g^r$
+\form#14:$ SSV = H XOR HashToIntegerRange( w, 2^n, Hash )$
+\form#15:$ r = HashToIntegerRange( SSV || b, q, Hash )$
+\form#16:$ TEST = [r]([b]P + Z_S)$
+\form#17:$E(F_p)$
+\form#18:$R_{(b,S)}$
