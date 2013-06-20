@@ -1,6 +1,7 @@
 CC=gcc
-CFLAGS= -m64 -O2 -fPIC -I/usr/include/php -I/usr/include/php/main -I/usr/include/php/TSRM -I/usr/include/php/Zend -I/usr/include/php/ext -I/usr/include/php/ext/date/lib -I../src/
+CFLAGS= -m64 -O2 -fPIC `php-config --includes` -I../src/
 LINKFLAGS = -L../lib -lmiracl -lm
+INSTALLDIR = `php-config --extension-dir`
 
 all: sakke.so eccsi.so aesGcm.so 
 
@@ -28,12 +29,12 @@ swig:
 	swig -php eccsi.i
 
 install: 
-	cp sakke.so /usr/lib64/php/modules
-	cp eccsi.so /usr/lib64/php/modules
-	cp aesGcm.so /usr/lib64/php/modules
-	chmod 755 /usr/lib64/php/modules/sakke.so
-	chmod 755 /usr/lib64/php/modules/eccsi.so
-	chmod 755 /usr/lib64/php/modules/aesGcm.so
+	cp sakke.so $(INSTALLDIR)
+	cp eccsi.so $(INSTALLDIR)
+	cp aesGcm.so $(INSTALLDIR)
+	chmod 755  $(INSTALLDIR)/sakke.so
+	chmod 755  $(INSTALLDIR)/eccsi.so
+	chmod 755 $(INSTALLDIR)/aesGcm.so
 
 test: 
 	php TestToken.php
