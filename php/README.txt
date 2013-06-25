@@ -1,6 +1,6 @@
 To create the MPin lib PHP extensions follow these steps:
 
-1. Install SWIG and PHP5 (php5 and php5-dev on Ubuntu)
+1. Install SWIG and PHP5 (php5 and php5-dev on Ubuntu, oho and php-devel on CentOS)
 
 2. Generate the SWIG wrappers
 
@@ -14,7 +14,11 @@ make
 
 make install (as root)
 
-5. Run example. 
+5. in php.ini, set
+
+enable_dl = On
+
+6. Run example. 
 
 ./runExample.bsh
 
