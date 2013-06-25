@@ -8,6 +8,6 @@ The directory structure is as follows;
 
 ./src      Source code for M-Pin methods
 
-./php      PHP wrapper generated using SWIG and example program
+./php      PHP wrapper generated using SWIG and example program; it contains a working example of PHP RP code
 
 ./docs     Documentation describing the API
