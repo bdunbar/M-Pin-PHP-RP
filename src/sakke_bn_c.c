@@ -1421,7 +1421,7 @@ int SAKKE_PERMIT_VALIDATE(sak_domain *DOM,int date,octet *ID,octet *Z,octet *K,o
 mr_unsign32 SAKKE_GET_TIME_SLOT(octet *SC)
 {
 	int m=2*SFS+SAS+1;
-	if (SC->len>2*SFS+SAS+1) return getdate(&(SC->val[m]));
+	if (SC->len>2*SFS+SAS+1) return cv_getdate(&(SC->val[m]));
 	return 0;
 }
 
@@ -1628,7 +1628,7 @@ int SAKKE_KEY_DECAPSULATE(sak_domain *DOM,octet *SC,octet *Z,octet *ID,octet *K,
 
 		if (PMT!=NULL)
 		{
-			n=getdate(&(SC->val[2*SFS+SAS+1]));
+			n=cv_getdate(&(SC->val[2*SFS+SAS+1]));
 			convert(_MIPP_ n,a);
 			add(_MIPP_ b,a,b);
 		}

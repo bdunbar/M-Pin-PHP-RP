@@ -94,7 +94,7 @@ typedef struct
 } zzn12;
 
 extern mr_unsign32 today(void);
-/* extern mr_unsign32 getdate(char *); */
+extern mr_unsign32 cv_getdate(char *); 
 extern void thedate(mr_unsign32 ,char *);
 extern void int_to_base64(int , char *);
 extern int base64_to_int(char *);
@@ -141,5 +141,5 @@ extern void G2_mult(_MIPT_ ecn2 *,big ,zzn2 *,big ,big ,ecn2 *);
 extern void AES_KEY(csprng *,octet *);
 extern void AES_GCM_ENCRYPT(octet *,octet *,octet *,octet *,octet *,octet *);
 extern void AES_GCM_DECRYPT(octet *,octet *,octet *,octet *,octet *,octet *);
-
+extern void hex2bin( char* dest, char *text );
 #endif

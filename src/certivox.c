@@ -32,7 +32,7 @@ mr_unsign32 today(void)
 	return (long)(ti/(60*TIME_SLOT_MINUTES));
 }
 
-mr_unsign32 getdate(char *d)
+mr_unsign32 cv_getdate(char *d)
 {
 	return ((unsigned char)d[0]<<24)|((unsigned char)d[1]<<16)|((unsigned char)d[2]<<8)|((unsigned char)d[3]);
 }
@@ -48,34 +48,6 @@ void thedate(mr_unsign32 slot,char *date)
 	else strftime(date,20,"%d-%m-%Y %H:%M",t);
 }
 
-/* todays date. Format is 24 bits: year (12 bits) | day_of_month (5 bits) | month (4 bits) | weekday (3 bits) */
-/*mr_unsign32 today(void)
-{
-    time_t now = time(0);
-    struct tm date;
-	int d;
-
-    date = *localtime(&now);
-	d=(((((((1900+date.tm_year)<<5)+date.tm_mday)<<4)+date.tm_mon)<<3)+date.tm_wday);
-
-	return d;
-}
-// Get date from 4 bytes 
-
-mr_unsign32 getdate(char *d)
-{
-	return ((unsigned char)d[0]<<24)|((unsigned char)d[1]<<16)|((unsigned char)d[2]<<8)|((unsigned char)d[3]);
-}
-
-// Extract date as day/month/year 
-
-void thedate(mr_unsign32 date,int *d,int *m,int *y)
-{
-	*d=(date>>7)&0x1f;
-	*m=1+(date>>3)&0xf;
-	*y=(date>>12);
-}
-*/
 /* a couple of base64 utilities. Convert 32-bit integer to/from 6 char base64. Leading 0's included. */
 
 void int_to_base64(int x, char *w)
@@ -1892,4 +1864,11 @@ csprng generateRNG(char* seedValue)
       CREATE_CSPRNG(&RNG,&octetRAW); 
     }
   return RNG;
+}
+
+void hex2bin( char* dest, char *text )
+{
+  unsigned int ch ;
+  for( ; sscanf( (const char*)text, "%2x", &ch ) == 1 ; text += 2 )
+  *dest++ = (unsigned char) ch ;
 }
