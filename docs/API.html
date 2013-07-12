@@ -1,0 +1,487 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>certivox</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+
+<ul>
+
+	<li><a href="#certivox_api__m_pin_api_and_demo_system">CertiVox API, M-PIN API  and Demo System</a></li>
+	<ul>
+
+		<li><a href="#general_notes">General notes</a></li>
+		<ul>
+
+			<li><a href="#ssl">SSL</a></li>
+			<li><a href="#utf_8_encoding">UTF-8 encoding</a></li>
+			<li><a href="#signature">Signature</a></li>
+			<li><a href="#version_numbers">Version numbers</a></li>
+			<li><a href="#configuration_files">Configuration files</a></li>
+			<li><a href="#error_handling">Error handling</a></li>
+			<li><a href="#standard_api_errors">Standard API errors</a></li>
+		</ul>
+
+		<li><a href="#_permits__get_">/permits (GET)</a></li>
+		<li><a href="#_clientsecret__post_">/clientSecret (POST)</a></li>
+		<li><a href="#_customer__post_">/customer (POST)</a></li>
+		<li><a href="#_authenticationtoken__websocket_">/authenticationToken (WebSocket)</a></li>
+	</ul>
+
+</ul>
+
+<hr name="index" />
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="certivox_api__m_pin_api_and_demo_system">CertiVox API, M-PIN API  and Demo System</a></h1>
+<p>The install package provide two servers the MPinAuthentication server and a demo
+system. In addition Certivox also runs MPin API services.</p>
+<p>The CertiVox API is a system interface for accessing CertiVox M-Pin and M-Key services.
+It allow a Customer to register with Certivox by provide their organisation name,
+admin name and email but this is not manditory. The server will randomly generate
+a 128 bit hex encoded value and use this as the Customer's ID to provide SAKKE and ECCSI private keys.
+In addition it will also provode a M-Pin server secret and an M-Pin time permit.</p>
+<p>The demo system enables an end user to be registered on the Certivox system. It does
+this by signing a request for a client secret. This request is rendered to the browser which
+forwards it to the Certivox API. It then validates the request and sends a client
+secret to the end user's browser. The end user is now able to perform MPin authentication.</p>
+<p>The M-Pin authentication server use the M-Pin protocol to authenticate users using strong
+two factor authentication. The result of an authentication attempt is an authentication
+token. These token are signed with ECCSI and encrypted with AES-GCM. The AES-KEY is then
+encapsulated with SAKKE. An encrypted token is then formed and sent to the end user's
+browser where it is forwarded to the demo server.</p>
+<p>The demo server will decapsulate the AES-GCM key using SAKKE, decrypt the token and
+verify the signature using ECCSI. It then checks that the timestamp in the token has
+not expired and that the successCode has been set to one. If this is the case, then
+the user is authenticated. Note that the demo site is responsible for revocation and that
+a token will be forwarded to it regardless of successfull authentication at the
+MPinAuthentication server.</p>
+<p>
+</p>
+<h2><a name="general_notes">General notes</a></h2>
+<p>
+</p>
+<h3><a name="ssl">SSL</a></h3>
+<p>Certivox runs its API services under SSL.</p>
+<p>It is recommended that the Customers run the MPin Authentication server and their
+application layer using SSL to prevent man in the middle attacks.</p>
+<p>
+</p>
+<h3><a name="utf_8_encoding">UTF-8 encoding</a></h3>
+<p>Every string passed to and from the API needs to be UTF-8 encoded.</p>
+<p>
+</p>
+<h3><a name="signature">Signature</a></h3>
+<p>All requests for M-Pin clientSecrets must contain a url signature. The string to sign must be of this format</p>
+<p>stringToSign = &quot;method:&lt;method&gt; customerID:&lt;customerID&gt; endUserID:&lt;endUserID&gt; expires:&lt;expiresStr&gt;&quot;</p>
+<p>A signature is generated using ECCSI. The result is then hex encoded to generate the url signature.</p>
+<p>
+</p>
+<h3><a name="version_numbers">Version numbers</a></h3>
+<p>The current version of our API is version 0.1. Every call to the
+service will return the API version that was used for the call and the latest version
+available.</p>
+<p>
+</p>
+<h3><a name="configuration_files">Configuration files</a></h3>
+<pre>
+    There are two configuration files mpin.conf and demo.conf. They will be in the directory 
+    where you want to run the web servers. The demo.conf has an extra setting from mpin.conf.
+    This setting, MPinAuthenticationServer, give the location and Port number of the webSocket
+    used to run the authentication server.These file are used to configure all the services.
+    An example of such a file is below.</pre>
+<pre>
+    {
+      logLevel =&gt; 'debug', # info || error || debug 
+      testLevel =&gt; 1, # 1 means dump errors to client
+      logLevel =&gt; 'debug', # info || error || debug || test
+      MPinAuthenticationServer =&gt; &lt;MPinAuthenticationServer URL for webSocket&gt;,
+      customerID =&gt; &lt;customer identity&gt;,
+      serverSecret =&gt; &lt;MPin Server Secret&gt;,
+      KbS =&gt; &lt;SAKKE Private key&gt;,
+      ZS =&gt; &lt;SAKKE System Public Key&gt;,
+      PVTSSK =&gt; &lt;ECCSI Private Key&gt;,
+      KPAK =&gt; &lt;ECCSI System Public Key&gt;,
+      hypnotoad =&gt; {
+        listen  =&gt; [&lt;port and SSL keys],
+        workers =&gt; &lt;number of workers&gt;,
+        proxy =&gt; 1
+      }
+    };</pre>
+<pre>
+    Hynotoad is UNIX optimized preforking web server that is used in this distribution. The listen setting
+    describes the URL / IP and Port number that the server should listen on. The number of process is defined
+    by the workers setting. It is common to deploy Hypnotoad behind a reverse proxy. The proxy setting will
+    allow Mojolicious to automatically pick up the X-Forwarded-For and X-Forwarded-HTTPS headers.</pre>
+<p>
+</p>
+<h3><a name="error_handling">Error handling</a></h3>
+<p>Errors are returned using standard HTTP error code syntax.
+Any additional info is included in the body of the return call.</p>
+<p>
+</p>
+<h3><a name="standard_api_errors">Standard API errors</a></h3>
+<pre>
+  Code    Description</pre>
+<pre>
+  400     Missing required parameter: &lt;parameter&gt;
+  401     You are not authorized to use the API. Invalid Signature
+  403     Request expired
+  403     &lt;method&gt; does not exist
+  404     URI Not Found
+  5xx     Server error.</pre>
+<p>
+</p>
+<h2><a name="_permits__get_">/permits (GET)</a></h2>
+<ul>
+<li><strong><a name="description" class="item">Description</a></strong>
+
+<pre>
+    Retrieves the time permits of a registered user.</pre>
+</li>
+<li><strong><a name="url_structure" class="item">URL structure</a></strong>
+
+<pre>
+    https://m-pinapi.certivox.net/v0.1/permits?endUserID=&lt;endUserID&gt;&amp;customerID=&lt;customerID&gt;</pre>
+</li>
+<li><strong><a name="version" class="item">Version</a></strong>
+
+<pre>
+    0.1</pre>
+</li>
+<li><strong><a name="verb" class="item">Verb</a></strong>
+
+<pre>
+    GET</pre>
+</li>
+<li><strong><a name="parameters" class="item">Parameters</a></strong>
+
+<ul>
+<li><strong><a name="enduserid_identity_for_which_permits_are_requested_item_customerid_identity_of_the_customer" class="item">endUserID: &lt;identity for which permits are requested&gt;
+=item * customerID: &lt;identity of the Customer&gt;</a></strong>
+
+</li>
+</ul>
+</li>
+<li><strong><a name="returns" class="item">Returns</a></strong>
+
+<pre>
+    Calculates the MPIN Client permits with is returned in this JSON object.</pre>
+<pre>
+    JSON response.</pre>
+<pre>
+    {
+       &quot;certiVoxAPI&quot; : {
+          &quot;version&quot; : 0.1,
+          &quot;latestVersion&quot; : 0.1
+       },
+       &quot;permits&quot; : {
+          &quot;MPINTimePermit&quot; : &quot;&lt;MPINTimePermit&gt;&quot;
+       }
+    }</pre>
+</li>
+<li><strong><a name="errors" class="item">Errors</a></strong>
+
+<pre>
+    500         MPIN time permit request failed</pre>
+</li>
+</ul>
+<p>
+</p>
+<h2><a name="_clientsecret__post_">/clientSecret (POST)</a></h2>
+<ul>
+<li><strong><a name="description2" class="item">Description</a></strong>
+
+<pre>
+    Retrieves the MPIN client secret of an End User</pre>
+</li>
+<li><strong><a name="url_structure2" class="item">URL structure</a></strong>
+
+<pre>
+    https://m-pinapi.certivox.net/v0.1/clientSecret?customerID=&lt;customerID&gt;&amp;expires=2014-05-13T13:30:33Z&amp;endUserID=&lt;endUserID&gt;&amp;signature=&lt;signature&gt;</pre>
+</li>
+<li><strong><a name="version2" class="item">Version</a></strong>
+
+<pre>
+    0.1</pre>
+</li>
+<li><strong><a name="verb2" class="item">Verb</a></strong>
+
+<pre>
+    POST</pre>
+</li>
+<li><strong><a name="parameters2" class="item">Parameters</a></strong>
+
+<ul>
+<li><strong><a name="customerid_identity_of_the_customer" class="item">customerID: &lt;identity of the Customer&gt;</a></strong>
+
+</li>
+<li><strong><a name="enduserid_identity_for_which_permits_are_requested" class="item">endUserID: &lt;identity for which permits are requested&gt;</a></strong>
+
+</li>
+<li><strong><a name="expires_time_at_which_request_expires" class="item">expires: &lt;time at which request expires&gt;</a></strong>
+
+</li>
+<li><strong><a name="signature_signature" class="item">signature: &lt;signature&gt;</a></strong>
+
+</li>
+</ul>
+</li>
+<li><strong><a name="returns2" class="item">Returns</a></strong>
+
+<pre>
+    Calculates the MPIN Client secret with is returned in this JSON object.</pre>
+<pre>
+    JSON response.</pre>
+<pre>
+    {
+       &quot;certiVoxAPI&quot; : {
+          &quot;version&quot; : 0.1,
+          &quot;latestVersion&quot; : 0.1
+       },
+       &quot;clientSecret&quot; : {
+          &quot;clientSecret&quot; : &quot;&lt;clientSecret&gt;&quot;
+       }
+    }</pre>
+</li>
+<li><strong><a name="errors2" class="item">Errors</a></strong>
+
+<pre>
+    401         Missing required parameter: &lt;param&gt;
+    401         You are not authorized to use the API. Invalid Signature
+    403         Request expired
+    500         request for M-Pin clientSecret failed</pre>
+</li>
+</ul>
+<p>
+</p>
+<h2><a name="_customer__post_">/customer (POST)</a></h2>
+<ul>
+<li><strong><a name="description3" class="item">Description</a></strong>
+
+<pre>
+    Registers a Customer and returns a set of keys and a customer ID.</pre>
+</li>
+<li><strong><a name="url_structure3" class="item">URL structure</a></strong>
+
+<pre>
+    https://m-pinapi.certivox.net/v0.1/customer?organisation_name=&lt;organisation's name&gt;&amp;admin_name?=&lt;administrator's name&gt;&amp;email=&lt;administrator's email address&gt;</pre>
+</li>
+<li><strong><a name="version3" class="item">Version</a></strong>
+
+<pre>
+    0.1</pre>
+</li>
+<li><strong><a name="verb3" class="item">Verb</a></strong>
+
+<pre>
+    GET</pre>
+</li>
+<li><strong><a name="parameters3" class="item">Parameters</a></strong>
+
+<p>These parameters are not required.</p>
+<ul>
+<li><strong><a name="customer_organisation_s_name_item_admin_administrator_s_name_item_email_administrator_s_email_address" class="item">customer: &lt;organisation's name&gt;
+=item * admin: &lt;administrator's name&gt;
+=item * email: &lt;administrator's email address&gt;</a></strong>
+
+</li>
+</ul>
+</li>
+<li><strong><a name="returns3" class="item">Returns</a></strong>
+
+<pre>
+    Customer's keys and customer identity</pre>
+<pre>
+    JSON response.</pre>
+<pre>
+    {
+       &quot;keys&quot; : {
+          &quot;KbS&quot; : &lt;SAKKE Private key&gt;,
+          &quot;ZS&quot; : &lt;SAKKE System Public Key&gt;,
+          &quot;KPAK&quot; : &lt;ECCSI System Public Key&gt;,
+          &quot;serverSecret&quot; : &lt;MPin Server Secret&gt;,
+          &quot;PVTSSK&quot; : &lt;ECCSI Private Key&gt;,
+       },
+       &quot;certiVoxAPI&quot; : {
+          &quot;version&quot; : 0.1,
+          &quot;latestVersion&quot; : 0.1
+       },
+       &quot;statusMessage&quot; : &quot;Registered&quot;,
+       &quot;customerID&quot; : &lt;customer identity&gt;,
+    }</pre>
+</li>
+<li><strong><a name="return_codes" class="item">Return codes</a></strong>
+
+<pre>
+    200         Registered
+    500         generateECCSIMasterKeyPair failed
+    500         generateSAKKEMasterKeyPair failed
+    500         DB ERROR: Please contact support</pre>
+</li>
+</ul>
+<p>
+</p>
+<h2><a name="_authenticationtoken__websocket_">/authenticationToken (WebSocket)</a></h2>
+<ul>
+<li><strong><a name="description4" class="item">Description</a></strong>
+
+<pre>
+    The End-User requests an authentication token for its identity from the
+    authentication server. The authentication token is signed with ECCSI. It is
+    encrypted with AES-GCM and the AES-GCM key is encapsulated using SAKKE. The
+    ecrypted authentication token is returned to the End-User.</pre>
+<pre>
+    The reponse from this call is then sent to the Customer's server for further
+    processing. The Customer decapsulates the AES-GCM key, decrypts the token and
+    verifies the signature. The timestamp is also checked to ensure the token has
+    not expired. If the sucessCode is 1 then the Customer knows that the identity in
+    the endUserID field is authenticated.</pre>
+<pre>
+    The structure of the unencrypted signed token is as follows;</pre>
+<pre>
+    Authentication Token {
+      &quot;successCode&quot; : &lt;code&gt;,
+      &quot;signature&quot; : &lt;ECCSI signature&gt;,
+      &quot;endUserID&quot; : &lt;End-User Identity&gt;,
+      &quot;expires&quot; : &lt;UTC Timestamp&gt;
+    }</pre>
+<pre>
+    The successCode is 0 for authentication failure or else 1 for success.</pre>
+<pre>
+    The structure of the encrypted token is as follows;</pre>
+<pre>
+    Encrypted Authentication Token {
+      &quot;HRbS&quot; : &lt;SAKKE cryptotext&gt;,
+      &quot;iv&quot; : &lt;AES-GCM Initialisation Vector&gt;,
+      &quot;ciphertext&quot; : &lt;AES-GCM cryptotext&gt;,
+      &quot;tag&quot; : &lt;AES-GCM checksum&gt;
+    },</pre>
+<pre>
+    In addition the success code from AES-GCM, ECCSI and SAKKE are also returned. A
+    non zero value indicates failure and would require the Customer to contact certivox
+    support.</pre>
+<pre>
+    &quot;error&quot; : {
+      &quot;AESError&quot; : 0,
+      &quot;ECCSIError&quot; : 0,
+      &quot;SAKKEError&quot; : 0
+    },</pre>
+</li>
+<li><strong><a name="url_structure4" class="item">URL structure</a></strong>
+
+<pre>
+    ws://&lt;customerURL&gt;/authenticationToken</pre>
+</li>
+<li><strong><a name="version4" class="item">Version</a></strong>
+
+<pre>
+    0.1</pre>
+</li>
+<li><strong><a name="verb4" class="item">Verb</a></strong>
+
+<pre>
+    WebSocket</pre>
+</li>
+<li><strong><a name="websocket" class="item">WebSocket</a></strong>
+
+<pre>
+    The call uses webSockets and this has to be made over port 443 in order to allow
+    access over Telecom networks.</pre>
+<pre>
+    All data sent over the socket must be hex encoded. An abridged example the flow of data between
+    the client and server is as follows;</pre>
+<pre>
+    WEBSOCKET PASS1 REQUEST
+     {
+       &quot;type&quot; : &quot;parameters&quot;,
+       &quot;zIDc&quot; : &quot;042...d42&quot;,
+       &quot;endUserID&quot; : &quot;6b65616c616e&quot;,
+       &quot;maskedSecret&quot; : &quot;040...ab6&quot;
+    }</pre>
+<pre>
+    WEBSOCKET PASS1 RESPONSE
+     {
+       &quot;parameters&quot; : {
+          &quot;maskedPairing&quot; : &quot;0af...f2c&quot;,
+          &quot;wIDc&quot; : &quot;042...394&quot;
+       },
+       &quot;certiVoxAPI&quot; : {
+          &quot;version&quot; : 0.1,
+          &quot;latestVersion&quot; : 0.1
+       },
+       &quot;statusMessage&quot; : &quot;SUCCESS&quot;,
+       &quot;type&quot; : &quot;parameters&quot;,
+       &quot;code&quot; : 200
+    }</pre>
+<pre>
+    WEBSOCKET PASS2 REQUEST
+     {
+       &quot;authenticator&quot; : &quot;3e16fd1c0c3149280e9b0a277e68bc2ef038db79fda4bd4cc7ae20617ea9a750&quot;,
+       &quot;customerID&quot; : &quot;2ac8abba7efa09c2b0c3b760742ef2&quot;,
+       &quot;type&quot; : &quot;authenticator&quot;,
+       &quot;endUserID&quot; : &quot;6b65616c616e&quot;
+    }</pre>
+<pre>
+    WEBSOCKET PASS2 RESPONSE
+     {
+       &quot;certiVoxAPI&quot; : {
+          &quot;version&quot; : 0.1,
+          &quot;latestVersion&quot; : 0.1
+       },
+       &quot;authToken&quot; : {
+          &quot;HRbS&quot; : &quot;70a...13a&quot;,
+          &quot;iv&quot; : &quot;a49f7e9c0089035eeac8ffa3&quot;,
+          &quot;ciphertext&quot; : &quot;d66...e78&quot;,
+          &quot;tag&quot; : &quot;82ae04bc41ee8f3331d83f9cc1188957&quot;
+       },
+       &quot;statusMessage&quot; : &quot;No indication of success&quot;,
+       &quot;error&quot; : {
+          &quot;AESError&quot; : 0,
+          &quot;ECCSIError&quot; : 0,
+          &quot;SAKKEError&quot; : 0
+       },
+       &quot;type&quot; : &quot;authenticator&quot;,
+       &quot;code&quot; : 0
+    }</pre>
+</li>
+<li><strong><a name="returns4" class="item">Returns</a></strong>
+
+<pre>
+    Encrypted Authentitcation Token</pre>
+</li>
+<li><strong><a name="return_codes" class="item">Return Codes</a></strong>
+
+<pre>
+    PASS1 RESPONSE</pre>
+<pre>
+    200         SUCCESS
+    500         calculateServerKey failed</pre>
+<pre>
+    PASS2 RESPONSE</pre>
+<pre>
+    The codes 200 and 401  will only be returned if the returnCode is equal to 1 in the
+    mpin.pl file or else a code of 000 will be returned. A return code of 000 gives
+    no indication of success or failure to authenticate.</pre>
+<pre>
+    000         No indication of success
+    200         SUCCESS: Client and Server Authenticators matched
+    401         ERROR: Client Authenticator is invalid</pre>
+</li>
+</ul>
+
+</body>
+
+</html>

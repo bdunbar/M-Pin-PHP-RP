@@ -1,0 +1,4 @@
+API.html                API description
+codeDescription         Code description to open: firefox codeDescription/index.html
+setup.jpg               Sequence diagram for client setup
+login.jpg               Sequence diagram for login
