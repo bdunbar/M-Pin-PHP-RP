@@ -56,6 +56,7 @@ The directory structure is as follows;
 
 <h2>Copyright and License:</strong></h2>
 <p>© 2013 CertiVox UK Ltd., All Rights Reserved.</p>
+<p>The CertiVox M-Pin Client and Server Libraries are free software: you can redistribute it and/or modify it under the terms of the BSD 3-Clause License http://opensource.org/licenses/BSD-3-Clause.</p>
   <p>For full details regarding our CertiVox terms of service please refer to the following links:</p>
 <ul>
   <li><a href="http://www.certivox.com/about-certivox/terms-and-conditions/">Our Terms and Conditions</a></li>
