@@ -52,7 +52,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 extern const mr_small mprom[];
 
-/* SkyPin domain parameters */
+/* M-Pin domain parameters */
 
 typedef struct
 {
