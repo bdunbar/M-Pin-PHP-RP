@@ -15,6 +15,9 @@ The directory structure is as follows;
 
 ./docs     Documentation describing the API
 
+./build    Directory for building the example RP code. Please follow the
+           instructions in the README file in this directory.
+
   <p>The CertiVox M-Pin Client and Server Libraries are free software: you can redistribute it and/or modify it under the terms of the BSD 3-Clause License http://opensource.org/licenses/BSD-3-Clause as stated below.</p>
 <p>M-Pin Strong Authentication enables multi-factor authentication for web sites and applications; check our <a href="http://www.certivox.org">wiki</a> for more info and a full glossary, and our <a href="https://m-pindemo.certivox.org/">demo</a> for a taste of the user experience with M-Pin PIN Pad.<h2>Quick start guide</h2>
   <ol><li><strong>Install M-Pin Authentication Server, </strong>downloading the installation package from <a href="http://www.certivox.com/m-pin-download/">here</a>.<br />

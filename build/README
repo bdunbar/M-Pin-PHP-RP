@@ -1,0 +1,19 @@
+In order to the build and run the example RP code follow these steps.
+
+1. Install SWIG (http://www.swig.org/)
+
+2. Build libraries
+
+./build64.sh
+
+3. As root install php libraries. 
+
+./install.sh
+
+4. Change setting in the PHP configuraion file /etc/php.ini
+
+enable_dl On
+
+5. Run example
+
+./runExample.sh
