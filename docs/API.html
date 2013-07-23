@@ -35,6 +35,7 @@
 		<li><a href="#_clientsecret__post_">/clientSecret (POST)</a></li>
 		<li><a href="#_customer__post_">/customer (POST)</a></li>
 		<li><a href="#_authenticationtoken__websocket_">/authenticationToken (WebSocket)</a></li>
+		<li><a href="#_verifytoken__post_">/verifyToken (POST)</a></li>
 	</ul>
 
 </ul>
@@ -46,28 +47,30 @@
 <p>
 </p>
 <h1><a name="certivox_api__m_pin_api_and_demo_system">CertiVox API, M-PIN API  and Demo System</a></h1>
-<p>The install package provide two servers the MPinAuthentication server and a demo
-system. In addition Certivox also runs MPin API services.</p>
-<p>The CertiVox API is a system interface for accessing CertiVox M-Pin and M-Key services.
-It allow a Customer to register with Certivox by provide their organisation name,
-admin name and email but this is not manditory. The server will randomly generate
-a 128 bit hex encoded value and use this as the Customer's ID to provide SAKKE and ECCSI private keys.
-In addition it will also provode a M-Pin server secret and an M-Pin time permit.</p>
-<p>The demo system enables an end user to be registered on the Certivox system. It does
-this by signing a request for a client secret. This request is rendered to the browser which
-forwards it to the Certivox API. It then validates the request and sends a client
-secret to the end user's browser. The end user is now able to perform MPin authentication.</p>
-<p>The M-Pin authentication server use the M-Pin protocol to authenticate users using strong
+<p>The install packages provide two servers, the M-Pin Authentication Server and a demo
+system. In addition, CertiVox also runs M-Pin Managed Services, accessible through the CertiVox APIs.</p>
+<p>The CertiVox APIs provide interfaces to access CertiVox M-Pin and M-Key services.
+They allow a customer to register with CertiVox by providing their organisation name,
+their admin name and their email address; it isn't mandatory to provide such data. The server will randomly generate
+a 128 bit hex encoded value, M-Pin API ID, and will use this as the unique M-Pin server's identifier to provide SAKKE and ECCSI private keys.
+In addition, the APIs also provide calls for a M-Pin server secret and a M-Pin time permit.</p>
+<p>The demo system is a web server included in the package that enables the end user's registration on the CertiVox system out of the box.
+The demo system signs the end user's requests
+for the M-Pin Client Secret. This request is rendered to the browser which
+forwards it to the CertiVox API. It then validates the request and sends a client
+secret to the end user's browser. The demo system also render to the browser a request to the API for a time permit.
+ The end user is now able to perform M-Pin authentication.</p>
+<p>The M-Pin Authentication Server uses M-Pin Protocol to authenticate end users through
 two factor authentication. The result of an authentication attempt is an authentication
-token. These token are signed with ECCSI and encrypted with AES-GCM. The AES-KEY is then
+Token, signed with ECCSI and encrypted with AES-GCM. The AES-KEY is then
 encapsulated with SAKKE. An encrypted token is then formed and sent to the end user's
-browser where it is forwarded to the demo server.</p>
-<p>The demo server will decapsulate the AES-GCM key using SAKKE, decrypt the token and
-verify the signature using ECCSI. It then checks that the timestamp in the token has
+browser where it is forwarded to the demo server.
+The demo server decapsulates the AES-GCM key using SAKKE, decrypts the token and
+verifies the signature using ECCSI. It then checks that the timestamp in the token has
 not expired and that the successCode has been set to one. If this is the case, then
-the user is authenticated. Note that the demo site is responsible for revocation and that
-a token will be forwarded to it regardless of successfull authentication at the
-MPinAuthentication server.</p>
+the end user is authenticated. Note that the demo site is responsible for revocation and that
+a token will be forwarded to it even if authentication against the
+M-Pin Authentication Server fails.</p>
 <p>
 </p>
 <h2><a name="general_notes">General notes</a></h2>
@@ -96,12 +99,14 @@ available.</p>
 <p>
 </p>
 <h3><a name="configuration_files">Configuration files</a></h3>
-<pre>
-    There are two configuration files mpin.conf and demo.conf. They will be in the directory 
-    where you want to run the web servers. The demo.conf has an extra setting from mpin.conf.
-    This setting, MPinAuthenticationServer, give the location and Port number of the webSocket
-    used to run the authentication server.These file are used to configure all the services.
-    An example of such a file is below.</pre>
+<p>The demo system and the authentication server retrieve their configurations from two
+configuration files, mpin.conf and demo.conf. They need to be located in the same directory
+where the web servers and the authentication server are run. The two files are almost identical, as the only difference
+consists in an extra parameter in demo.conf. The additional parameter,
+MPinAuthenticationServer, sets the location of the M-Pin Authentication Server (IP Address or host name)
+and the port number on which the authentication server runs the webSocket service.
+These files are used to configure all the services.</p>
+<p>An example of such a file is shown below:</p>
 <pre>
     {
       logLevel =&gt; 'debug', # info || error || debug 
@@ -338,17 +343,15 @@ Any additional info is included in the body of the return call.</p>
 <ul>
 <li><strong><a name="description4" class="item">Description</a></strong>
 
-<pre>
-    The End-User requests an authentication token for its identity from the
-    authentication server. The authentication token is signed with ECCSI. It is
-    encrypted with AES-GCM and the AES-GCM key is encapsulated using SAKKE. The
-    ecrypted authentication token is returned to the End-User.</pre>
-<pre>
-    The reponse from this call is then sent to the Customer's server for further
-    processing. The Customer decapsulates the AES-GCM key, decrypts the token and
-    verifies the signature. The timestamp is also checked to ensure the token has
-    not expired. If the sucessCode is 1 then the Customer knows that the identity in
-    the endUserID field is authenticated.</pre>
+<p>The M-Pin End User requests an authentication token for his identity from the M-Pin
+Authentication Server. The token is signed with ECCSI. It is
+encrypted with AES-GCM and the AES-GCM key is encapsulated using SAKKE. The
+ecrypted M-Pin Authentication Token is returned to the M-Pin End User.</p>
+<p>The reponse from this call is then sent to the M-Pin Relying Party server for further
+processing. The M-Pin Relying Party server decapsulates the AES-GCM key, decrypts the token and
+verifies the signature. The timestamp is also checked to ensure the token has
+not expired. If the sucessCode is 1 then the Relying Party knows that the identity in
+the endUserID field is authenticated.</p>
 <pre>
     The structure of the unencrypted signed token is as follows;</pre>
 <pre>
@@ -460,7 +463,7 @@ Any additional info is included in the body of the return call.</p>
 <li><strong><a name="returns4" class="item">Returns</a></strong>
 
 <pre>
-    Encrypted Authentitcation Token</pre>
+    Encrypted Authentication Token</pre>
 </li>
 <li><strong><a name="return_codes" class="item">Return Codes</a></strong>
 
@@ -479,6 +482,66 @@ Any additional info is included in the body of the return call.</p>
     000         No indication of success
     200         SUCCESS: Client and Server Authenticators matched
     401         ERROR: Client Authenticator is invalid</pre>
+</li>
+</ul>
+<p>
+</p>
+<h2><a name="_verifytoken__post_">/verifyToken (POST)</a></h2>
+<ul>
+<li><strong><a name="description5" class="item">Description</a></strong>
+
+<p>The M-Pin Relying Party receives, via the M-Pin End User, the encrypted authentication token from the M-Pin Authentication
+Server. It also receieves an error structure that gives the error code that occured in
+the cryptographic functions on the authentication server.</p>
+<p>The AES-GCM key is decapsulated and then used to decrypt the encrypted authentication
+token. The signature of the authentication token is then verified.</p>
+<p>The end user is authenticated if the success field in the authentication token
+is set to success, and the token has not expired. In a real
+deployment the number of authentication attempts would also be a factor in determining
+whether an end user is allowed access to protected content.</p>
+<p>A session cookie, with a duration of one hour, is generated
+and rendered to the browser following a successful authentication.</p>
+</li>
+<li><strong><a name="url_structure5" class="item">URL structure</a></strong>
+
+<pre>
+    https://&lt;demoURL&gt;/verifyToken</pre>
+</li>
+<li><strong><a name="version5" class="item">Version</a></strong>
+
+<pre>
+    0.1</pre>
+</li>
+<li><strong><a name="verb5" class="item">Verb</a></strong>
+
+<pre>
+    POST</pre>
+</li>
+<li><strong><a name="parameters4" class="item">Parameters</a></strong>
+
+<ul>
+<li><strong><a name="authtoken_encrypted_authentication_token" class="item">authToken: &lt;encrypted authentication token&gt;</a></strong>
+
+</li>
+<li><strong><a name="error_authentication_server_errors" class="item">error: &lt;authentication server errors&gt;</a></strong>
+
+</li>
+</ul>
+</li>
+<li><strong><a name="returns5" class="item">Returns</a></strong>
+
+<pre>
+    A session cookie.</pre>
+</li>
+<li><strong><a name="return_codes2" class="item">Return Codes</a></strong>
+
+<pre>
+    Attempts are not being counted in the demo server.</pre>
+<pre>
+    200         Authenticated
+    401         Authentication Failed. Token Expired
+    401         Authentication Failed. Please re-enter PIN
+    410         Max attempts reached: Please contact support</pre>
 </li>
 </ul>
 
